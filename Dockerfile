@@ -1,14 +1,17 @@
-# Use a lightweight JDK base image
-FROM eclipse-temurin:17-jdk-alpine
+# ---------- Stage 1: Build the application ----------
+FROM gradle:8.5-jdk17-alpine AS build
+COPY --chown=gradle:gradle . /home/gradle/project
+WORKDIR /home/gradle/project
 
-# Create a directory for the app
+# Build the app using the Gradle wrapper
+RUN ./gradlew build --no-daemon
+
+# ---------- Stage 2: Run the application ----------
+FROM eclipse-temurin:17-jdk-alpine
 WORKDIR /app
 
-# Copy the fat JAR from your build output
-COPY build/libs/*.jar app.jar
+# Copy the fat JAR from the build stage
+COPY --from=build /home/gradle/project/build/libs/*.jar app.jar
 
-# Expose the default port your app runs on
 EXPOSE 9080
-
-# Run the Spring Boot app
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
