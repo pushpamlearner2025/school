@@ -3,6 +3,9 @@ FROM gradle:8.5-jdk17-alpine AS build
 COPY --chown=gradle:gradle . /home/gradle/project
 WORKDIR /home/gradle/project
 
+# Add execute permission to gradlew
+RUN chmod +x ./gradlew
+
 # Build the app using the Gradle wrapper
 RUN ./gradlew build --no-daemon
 
